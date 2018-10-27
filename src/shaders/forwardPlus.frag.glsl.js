@@ -1,6 +1,6 @@
 export default function(params) {
   return `
-  // TODO: This is pretty much just a clone of forward.frag.glsl.js
+  // This is pretty much just a clone of forward.frag.glsl.js
 
   #version 100
   precision highp float;
@@ -9,8 +9,14 @@ export default function(params) {
   uniform sampler2D u_normap;
   uniform sampler2D u_lightbuffer;
 
-  // TODO: Read this buffer to determine the lights influencing a cluster
+  // Read this buffer to determine the lights influencing a cluster
   uniform sampler2D u_clusterbuffer;
+
+  // Define additional vars,
+  // needs to match vars in forwardPlus.js renderer bindings!
+  uniform float u_cameraNear;
+  uniform float u_cameraFar;
+  uniform mat4 u_viewMatrix;
 
   varying vec3 v_position;
   varying vec3 v_normal;
@@ -75,14 +81,38 @@ export default function(params) {
   }
 
   void main() {
+    // Why are there sometimes types and sometimes
+    // java var declarations (IE let, var)
     vec3 albedo = texture2D(u_colmap, v_uv).rgb;
     vec3 normap = texture2D(u_normap, v_uv).xyz;
     vec3 normal = applyNormalMap(v_normal, normap);
 
     vec3 fragColor = vec3(0.0);
 
+    //ORDER IS IMPORTANT
+    // Types are really annoying /:
+    vec4 pose = u_viewMatrix * vec4(v_position, 1.0);
+    int clusterX = int(float(gl_FragCoord.x) * float(${params.xSlices}) / float(${params.width}));
+    int clusterY = int(gl_FragCoord.y * float(${params.ySlices}) / float(${params.height}));
+    int clusterZ = 0;
+    if (-pose.z > u_cameraNear) {
+        clusterZ = int((float(pose.z) - float(u_cameraNear)) * float(${params.xSlices}) + float(${params.xSlices}) * float(${params.ySlices}) * float(clusterZ));
+    }
+
+    int idx = int(clusterX) + int(${params.xSlices}) * int(clusterY) + int(${params.xSlices}) * int(${params.ySlices}) * int(clusterZ);
+    float pxtx = (idx + 1) / ${params.xSlices} * ${params.ySlices} * ${params.zSlices} * 1.0 + 1;
+    int clusterN = texture2D(u_clusterbuffer, vec2(pxtx, 0))[0];
+
+    // Check for clusters?
     for (int i = 0; i < ${params.numLights}; ++i) {
-      Light light = UnpackLight(i);
+      int a = (${params.maxLightsPerCluster} + 1) / 4 + 1;
+      int b = (i + 1) / 4;
+      float c = b / (1.0 * a);
+      vec4 px = tecture2D(u_clusterBuffer, vec2(pxtx, c);
+      idx = px[i + 1 - b * 4];
+  
+      // Use calculated idx instead of i
+      Light light = UnpackLight(idx);
       float lightDistance = distance(light.position, v_position);
       vec3 L = (light.position - v_position) / lightDistance;
 

@@ -31,3 +31,7 @@ to implementation work. Complete the implementation early to leave time!
 * [webgl-debug](https://github.com/KhronosGroup/WebGLDeveloperTools) by Khronos Group Inc.
 * [glMatrix](https://github.com/toji/gl-matrix) by [@toji](https://github.com/toji) and contributors
 * [minimal-gltf-loader](https://github.com/shrekshao/minimal-gltf-loader) by [@shrekshao](https://github.com/shrekshao)
+
+* * *
+
+ - https://vorg.github.io/pex/docs/pex-geom/Vec4.html
